@@ -1,0 +1,155 @@
+---
+title: "Reproducible Research Project 1"
+author: "Julie Steury"
+date: "Friday, May 15, 2015"
+output: html_document
+---
+
+```{r}
+fname="./activity/activity.csv"  #set filename for knitr 
+# fname="activity.csv"  #set filename
+         
+# Load libraries
+library(lubridate)
+library(dplyr)
+par(mfrow=c(1,1))  #initalize graphics device
+
+
+#Read in data
+aData<-read.csv(fname,stringsAsFactors=FALSE)
+
+#  Convert dates from character to POSIXct class
+dates<- ymd(aData$date)
+aData$date <- dates
+
+#head(aData); str(aData);tail(aData)
+
+aDataTbl = group_by(tbl_df(aData),date)
+ 
+## What is mean total number of steps taken per day?
+
+save <- summarize(aDataTbl,total=sum(steps))
+dailySteps <- summarize(aDataTbl,total=sum(steps))
+dailyMean <- summarize(aDataTbl,avgDayStep=mean(steps))
+
+allMean <- mean(dailyMean$avgDayStep)
+periodMean=mean(dailySteps$total,na.rm=TRUE)
+dailyMedian = median(dailySteps$total,na.rm=TRUE)
+
+
+# make a histogrm of daily steps
+hist(dailySteps$total)
+
+
+```
+What is the average daily activity pattern?
+
+Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+```{r}
+#Clean up missing data 
+aDataInt = group_by(tbl_df(aData),interval)
+
+idx=!is.na(aDataInt$steps)
+aDataInt=aDataInt[idx,]
+
+intervalMean = summarize(aDataInt,avgByInterval=mean(steps))
+
+```
+
+Create the plot - time interval vs. average by interval 
+
+```{r, echo=FALSE}
+with(intervalMean,plot(interval,avgByInterval,type="l"))
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+Find the interval with the maximum average steps.
+```{r}
+
+max=max(intervalMean[[2]])
+y=intervalMean[which(intervalMean$avgByInterval==max),]
+intervalMax=y[[1]]
+intervalMax
+
+```
+Imputing missing values
+
+Note that there are a number of days/intervals where there are missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data.
+
+Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+```{r}
+
+colSums(is.na(aData))
+sum(is.na(aData$steps))
+
+```
+
+Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+
+Create a new dataset that is equal to the original dataset but with the missing data filled in.
+```{r}
+
+idx=which(is.na(aData$steps))  #find the indexes for the na values
+
+aDataF <- aData
+
+for(i in seq_along(idx)) {
+        intrv = aDataF[idx,]$interval
+        #debug print statements
+ #       print("idx,intrv"); print(idx[1:5]);print(intrv[1:5])
+              
+        x=which(intervalMean$interval==intrv)
+  #      print("1. aDataF");print(aDataF[idx,]$steps[1:5])
+         aDataF[idx,]$steps = intervalMean[x,]$avgByInterval
+   #     print("aDataF");print(aDataF[idx,]$steps[1:5])
+   #     aDataF[idx,]$steps = 1000
+        #print("aDataF");print(aDataF[idx,]$steps[1:5])
+    
+}
+aData[1:1000,]$steps
+mean(aData[1:1000,]$steps)
+aDataTbl[1:1000,]$steps
+mean(aDataTbl[1:1000,]$steps)
+
+mean(aDataInt[1:1000,]$steps)
+aDataF[1:1000,]$steps
+mean(aDataF[1:1000,]$steps)
+
+```
+
+Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+```{r}
+aDataFTbl = group_by(tbl_df(aDataF),date)
+dailyStepsF <- summarize(aDataFTbl,total=sum(steps))
+dailyMeanF <- summarize(aDataFTbl,avgDayStep=mean(steps))
+periodMeanF <- mean(dailyStepsF$total,na.rm=TRUE)
+dailyMedianF <- median(dailyStepsF$total,na.rm=TRUE)
+periodMean <- mean(dailySteps$total,na.rm=TRUE)
+
+periodMean
+periodMeanF
+
+
+# make a new histogrm of daily steps with missing data "filled"; compare to original
+par(mfrow=c(1,2))
+hist(dailySteps$total)
+hist(dailyStepsF$total)
+
+
+```
+
+
+```{r}
+#debugging code
+
+
+
+```
+
+
+
+
