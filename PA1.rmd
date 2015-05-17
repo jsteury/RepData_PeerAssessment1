@@ -4,7 +4,7 @@ author: "Julie Steury"
 date: "Friday, May 15, 2015"
 output: html_document
 ---
-## Loading and preprocessing the data
+
 ```{r}
 fname="./activity/activity.csv"  #set filename for knitr 
 # fname="activity.csv"  #set filename
@@ -27,12 +27,6 @@ aData$date <- dates
 
 aDataTbl = group_by(tbl_df(aData),date)
  
-
-```
-
-
-## What is mean total number of steps taken per day?
-```{r}
 ## What is mean total number of steps taken per day?
 
 save <- summarize(aDataTbl,total=sum(steps))
@@ -47,11 +41,13 @@ periodMean;periodMedian
 # make a histogrm of daily steps
 hist(dailySteps$total)
 
+
 ```
+What is the average daily activity pattern?
 
+Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
-## What is the average daily activity pattern?
-
+Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 ```{r}
 #Clean up missing data 
 aDataInt = group_by(tbl_df(aData),interval)
@@ -81,11 +77,11 @@ intervalMax=y[[1]]
 intervalMax
 
 ```
+Imputing missing values
 
-## Imputing missing values
-Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+Note that there are a number of days/intervals where there are missing values (coded as NA). The presence of missing days may introduce bias into some calculations or summaries of the data.
 
-Create a new dataset that is equal to the original dataset but with the missing data filled in.
+Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 ```{r}
 
 colSums(is.na(aData))
@@ -93,8 +89,9 @@ sum(is.na(aData$steps))
 
 ```
 
+Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 
-
+Create a new dataset that is equal to the original dataset but with the missing data filled in.
 ```{r}
 
 idx=which(is.na(aData$steps))  #find the indexes for the na values
@@ -113,9 +110,7 @@ mean(aDataF$steps)
 
 ```
 
-## Are there differences in activity patterns between weekdays and weekends?
-
-
+Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 ```{r}
 aDataFTbl = group_by(tbl_df(aDataF),date)
 dailyStepsF <- summarize(aDataFTbl,total=sum(steps))
@@ -131,11 +126,11 @@ hist(dailyStepsF$total)
 
 
 ```
+Are there differences in activity patterns between weekdays and weekends?
 
-## Panel plot weekday and weekend days
+For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.
 
-Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
-
+Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
 ```{r}
 
@@ -146,6 +141,8 @@ aDataF$wkDay <- as.factor(temp)
 
 ```
 
+
+Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
 
 ```{r}
 
