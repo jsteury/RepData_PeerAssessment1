@@ -12,6 +12,7 @@ fname="./activity/activity.csv"  #set filename for knitr
 # Load libraries
 library(lubridate)
 library(dplyr)
+#library(plyr)
 par(mfrow=c(1,1))  #initalize graphics device
 
 
@@ -34,8 +35,8 @@ dailyMean <- summarize(aDataTbl,avgDayStep=mean(steps))
 
 allMean <- mean(dailyMean$avgDayStep)
 periodMean=mean(dailySteps$total,na.rm=TRUE)
-dailyMedian = median(dailySteps$total,na.rm=TRUE)
-
+periodMedian = median(dailySteps$total,na.rm=TRUE)
+periodMean;periodMedian
 
 # make a histogrm of daily steps
 hist(dailySteps$total)
@@ -98,26 +99,14 @@ idx=which(is.na(aData$steps))  #find the indexes for the na values
 aDataF <- aData
 
 for(i in seq_along(idx)) {
-        intrv = aDataF[idx,]$interval
-        #debug print statements
- #       print("idx,intrv"); print(idx[1:5]);print(intrv[1:5])
-              
+        intrv = aDataF[idx[i],]$interval
         x=which(intervalMean$interval==intrv)
-  #      print("1. aDataF");print(aDataF[idx,]$steps[1:5])
-         aDataF[idx,]$steps = intervalMean[x,]$avgByInterval
-   #     print("aDataF");print(aDataF[idx,]$steps[1:5])
-   #     aDataF[idx,]$steps = 1000
-        #print("aDataF");print(aDataF[idx,]$steps[1:5])
-    
+        aDataF[idx[i],]$steps = intervalMean[x,]$avgByInterval
+#%ry subbing in 10000 and see how results change
 }
-aData[1:1000,]$steps
-mean(aData[1:1000,]$steps)
-aDataTbl[1:1000,]$steps
-mean(aDataTbl[1:1000,]$steps)
 
-mean(aDataInt[1:1000,]$steps)
-aDataF[1:1000,]$steps
-mean(aDataF[1:1000,]$steps)
+mean(aData$steps)
+mean(aDataF$steps)
 
 ```
 
@@ -125,14 +114,10 @@ Make a histogram of the total number of steps taken each day and Calculate and r
 ```{r}
 aDataFTbl = group_by(tbl_df(aDataF),date)
 dailyStepsF <- summarize(aDataFTbl,total=sum(steps))
-dailyMeanF <- summarize(aDataFTbl,avgDayStep=mean(steps))
-periodMeanF <- mean(dailyStepsF$total,na.rm=TRUE)
-dailyMedianF <- median(dailyStepsF$total,na.rm=TRUE)
-periodMean <- mean(dailySteps$total,na.rm=TRUE)
-
-periodMean
+periodMeanF <- mean(dailyStepsF$total)
+periodMedianF <-median(dailyStepsF$total)
 periodMeanF
-
+periodMedianF
 
 # make a new histogrm of daily steps with missing data "filled"; compare to original
 par(mfrow=c(1,2))
@@ -141,13 +126,49 @@ hist(dailyStepsF$total)
 
 
 ```
+Are there differences in activity patterns between weekdays and weekends?
+
+For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.
+
+Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+
+```{r}
+
+temp <- mutate(aDataF,wkDay=weekdays(date))
+temp <- ifelse (temp$wkDay %in% c('Sunday','Saturday'),"weekend","weekday")
+aDataF$wkDay <- as.factor(temp) 
+
+
+```
+
+
+Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
+
+```{r}
+
+# Group by wkday type and interval
+by_interval <- group_by(tbl_df(aDataF), interval,wkDay)
+avgSteps=summarize(by_interval,avgSteps=mean(steps))
+
+library(lattice)
+xyplot(avgSteps~interval | wkDay,data=avgSteps, layout=c(1,2), type="l")
+#par=par(mfrow=c(2,1))
+#with(avgSteps,plot(interval,avgSteps,type="l"))
+
+
+
+```
+
+
+Debugging code - ignore
 
 
 ```{r}
-#debugging code
 
 
-
+#summaryT=cbind(dailySteps,dailyMean,dailyStepsF,dailyMeanF)
+#head(summaryT)
+#tail(summaryT)
 ```
 
 
